@@ -38,11 +38,11 @@ public class TweetController {
     }
 
     @PutMapping("/{id}")
-    public Tweet update(@PathVariable long id,@Valid @RequestBody TweetDTO tweetDTO) {
+    public Tweet update(@PathVariable long id, @Valid @RequestBody TweetDTO tweetDTO) {
         Tweet tweet = new Tweet();
         tweet.setContent(tweetDTO.content());
 
-        return tweetService.update(id,tweet);
+        return tweetService.update(id, tweet);
     }
 
     @DeleteMapping("/{id}")

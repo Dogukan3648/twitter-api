@@ -1,6 +1,7 @@
 
 package com.workintech.twitterapi;
 
+import com.workintech.twitterapi.dto.LoginDTO;
 import com.workintech.twitterapi.entity.*;
 import com.workintech.twitterapi.exception.TwitterException;
 import com.workintech.twitterapi.repository.*;
@@ -13,10 +14,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +47,9 @@ public class TwitterApiServiceTests {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private AuthenticationManager authenticationManager;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -57,6 +64,9 @@ public class TwitterApiServiceTests {
 
     @InjectMocks
     private RetweetServiceImpl retweetService;
+
+    @InjectMocks
+    private AuthenticationServiceImpl authenticationService;
 
     private void authenticate(String email) {
         SecurityContextHolder.getContext().setAuthentication(
@@ -82,7 +92,8 @@ public class TwitterApiServiceTests {
         when(passwordEncoder.encode("Test12345"))
                 .thenReturn("encodedPassword");
 
-        when(userRepository.save(user)).thenReturn(user);
+        when(userRepository.save(user))
+                .thenReturn(user);
 
         User result = userService.register(user);
 
@@ -281,5 +292,137 @@ public class TwitterApiServiceTests {
 
         assertEquals(HttpStatus.CONFLICT, exception.getHttpStatus());
         verify(retweetRepository, never()).save(any(Retweet.class));
+    }
+
+    @Test
+    @DisplayName("9 - Tweet başarıyla oluşturulmalı")
+    void saveTweetTest() {
+        authenticate("test@example.com");
+
+        User user = new User();
+        user.setEmail("test@example.com");
+
+        Tweet tweet = new Tweet();
+        tweet.setContent("Test tweet");
+
+        when(userRepository.findByEmail("test@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(tweetRepository.save(tweet))
+                .thenReturn(tweet);
+
+        Tweet result = tweetService.save(tweet);
+
+        assertEquals("Test tweet", result.getContent());
+        assertEquals(user, result.getUser());
+        verify(tweetRepository).save(tweet);
+    }
+
+    @Test
+    @DisplayName("10 - Kullanıcının Tweetleri listelenmeli")
+    void findByUserIdTest() {
+        Tweet tweet = new Tweet();
+        tweet.setId(1L);
+        tweet.setContent("Test tweet");
+
+        when(tweetRepository.findByUserId(1L))
+                .thenReturn(List.of(tweet));
+
+        List<Tweet> result = tweetService.findByUserId(1L);
+
+        assertEquals(1, result.size());
+        assertEquals("Test tweet", result.get(0).getContent());
+        verify(tweetRepository).findByUserId(1L);
+    }
+
+    @Test
+    @DisplayName("11 - Yorum sahibi yorumunu güncelleyebilmeli")
+    void updateCommentTest() {
+        authenticate("test@example.com");
+
+        User user = new User();
+        user.setEmail("test@example.com");
+
+        Comment existingComment = new Comment();
+        existingComment.setUser(user);
+        existingComment.setContent("Old comment");
+
+        Comment updatedComment = new Comment();
+        updatedComment.setContent("Updated comment");
+
+        when(commentRepository.findById(1L))
+                .thenReturn(Optional.of(existingComment));
+
+        when(commentRepository.save(existingComment))
+                .thenReturn(existingComment);
+
+        Comment result = commentService.update(1L, updatedComment);
+
+        assertEquals("Updated comment", result.getContent());
+        verify(commentRepository).save(existingComment);
+    }
+
+    @Test
+    @DisplayName("12 - Kullanıcı beğenisini kaldırabilmeli")
+    void dislikeTest() {
+        authenticate("test@example.com");
+
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@example.com");
+
+        Like like = new Like();
+        like.setId(1L);
+
+        when(userRepository.findByEmail("test@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(likeRepository.findByUserIdAndTweetId(1L, 2L))
+                .thenReturn(Optional.of(like));
+
+        Like result = likeService.dislike(2L);
+
+        assertEquals(1L, result.getId());
+        verify(likeRepository).delete(like);
+    }
+
+    @Test
+    @DisplayName("13 - Retweet sahibi retweetini silebilmeli")
+    void deleteRetweetTest() {
+        authenticate("test@example.com");
+
+        User user = new User();
+        user.setEmail("test@example.com");
+
+        Retweet retweet = new Retweet();
+        retweet.setId(1L);
+        retweet.setUser(user);
+
+        when(retweetRepository.findById(1L))
+                .thenReturn(Optional.of(retweet));
+
+        Retweet result = retweetService.delete(1L);
+
+        assertEquals(1L, result.getId());
+        verify(retweetRepository).delete(retweet);
+    }
+
+    @Test
+    @DisplayName("14 - Hatalı girişte 401 hatası verilmeli")
+    void loginTest() {
+        LoginDTO loginDTO = new LoginDTO(
+                "test@example.com",
+                "wrongpassword"
+        );
+
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new BadCredentialsException("Invalid credentials"));
+
+        TwitterException exception = assertThrows(
+                TwitterException.class,
+                () -> authenticationService.login(loginDTO)
+        );
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getHttpStatus());
     }
 }
