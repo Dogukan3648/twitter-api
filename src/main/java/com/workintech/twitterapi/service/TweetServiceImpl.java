@@ -3,9 +3,12 @@ package com.workintech.twitterapi.service;
 
 import com.workintech.twitterapi.entity.Tweet;
 import com.workintech.twitterapi.entity.User;
+import com.workintech.twitterapi.exception.TwitterException;
 import com.workintech.twitterapi.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,8 +37,15 @@ public class TweetServiceImpl implements TweetService {
 
     @Override
     public Tweet save(Tweet tweet) {
-        User user = userRepository.findById(tweet.getUser().getId())
-                .orElseThrow();
+        if (tweet.getId() != null) {
+            throw new TwitterException("New tweet ID must be null.",HttpStatus.BAD_REQUEST);
+        }
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new TwitterException(
+                        "User not found.",HttpStatus.NOT_FOUND
+                ));
 
         tweet.setUser(user);
         return tweetRepository.save(tweet);
@@ -48,12 +58,19 @@ public class TweetServiceImpl implements TweetService {
 
     @Override
     public Tweet findById(long id) {
-        return tweetRepository.findById(id).orElseThrow();
+        return tweetRepository.findById(id)
+                .orElseThrow(() -> new TwitterException("Tweet not found.", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public Tweet update(long id, Tweet tweet) {
         Tweet existingTweet = findById(id);
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!existingTweet.getUser().getEmail().equals(email)) {
+            throw new TwitterException( "Only the tweet owner can update this tweet.",HttpStatus.FORBIDDEN);
+        }
 
         existingTweet.setContent(tweet.getContent());
         return tweetRepository.save(existingTweet);
@@ -63,6 +80,12 @@ public class TweetServiceImpl implements TweetService {
     @Transactional
     public Tweet delete(long id) {
         Tweet tweet = findById(id);
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!tweet.getUser().getEmail().equals(email)) {
+            throw new TwitterException("Only the tweet owner can delete this tweet.",HttpStatus.FORBIDDEN);
+        }
 
         commentRepository.deleteByTweetId(id);
         likeRepository.deleteByTweetId(id);

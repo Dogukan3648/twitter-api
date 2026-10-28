@@ -1,7 +1,9 @@
 package com.workintech.twitterapi.controller;
 
+import com.workintech.twitterapi.dto.TweetDTO;
 import com.workintech.twitterapi.entity.Tweet;
 import com.workintech.twitterapi.service.TweetService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,32 +15,40 @@ public class TweetController {
     private TweetService tweetService;
 
     @Autowired
-    public TweetController(TweetService tweetService){
+    public TweetController(TweetService tweetService) {
         this.tweetService = tweetService;
     }
 
     @PostMapping
-    public Tweet save(@RequestBody Tweet tweet){
+    public Tweet save(@Valid @RequestBody TweetDTO tweetDTO) {
+        Tweet tweet = new Tweet();
+        tweet.setContent(tweetDTO.content());
+
         return tweetService.save(tweet);
     }
+
     @GetMapping("/findByUserId/{userId}")
-    public List<Tweet> findByUserId(@PathVariable long userId){
+    public List<Tweet> findByUserId(@PathVariable long userId) {
         return tweetService.findByUserId(userId);
     }
 
     @GetMapping("/findById/{id}")
-    public Tweet findById(@PathVariable long id){
+    public Tweet findById(@PathVariable long id) {
         return tweetService.findById(id);
     }
+
     @PutMapping("/{id}")
-    public Tweet update(@PathVariable long id,@RequestBody Tweet tweet){
+    public Tweet update(@PathVariable long id,@Valid @RequestBody TweetDTO tweetDTO) {
+        Tweet tweet = new Tweet();
+        tweet.setContent(tweetDTO.content());
+
         return tweetService.update(id,tweet);
     }
+
     @DeleteMapping("/{id}")
-    public Tweet delete(@PathVariable long id){
+    public Tweet delete(@PathVariable long id) {
         return tweetService.delete(id);
     }
-
 
 
 }
