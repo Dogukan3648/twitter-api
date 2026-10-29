@@ -6,9 +6,7 @@ import com.workintech.twitterapi.entity.Tweet;
 import com.workintech.twitterapi.service.LikeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class LikeController {
@@ -33,5 +31,10 @@ public class LikeController {
     @PostMapping("/dislike")
     public Like dislike(@Valid @RequestBody LikeDTO likeDTO) {
         return likeService.dislike(likeDTO.tweetId());
+    }
+
+    @GetMapping("/like/status/{tweetId}")
+    public boolean isLiked(@PathVariable long tweetId) {
+        return likeService.isLiked(tweetId);
     }
 }

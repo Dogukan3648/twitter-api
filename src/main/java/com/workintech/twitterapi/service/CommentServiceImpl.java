@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CommentServiceImpl implements CommentService {
 
@@ -85,5 +87,10 @@ public class CommentServiceImpl implements CommentService {
 
         commentRepository.delete(comment);
         return comment;
+    }
+
+    @Override
+    public List<Comment> findByTweetId(Long tweetId) {
+        return commentRepository.findByTweetId(tweetId);
     }
 }

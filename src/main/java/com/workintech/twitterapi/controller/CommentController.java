@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/comment")
 public class CommentController {
@@ -42,5 +44,10 @@ public class CommentController {
     @DeleteMapping("/{id}")
     public Comment delete(@PathVariable long id) {
         return commentService.delete(id);
+    }
+
+    @GetMapping("/tweet/{tweetId}")
+    public List<Comment> findByTweetId(@PathVariable Long tweetId){
+        return commentService.findByTweetId(tweetId);
     }
 }

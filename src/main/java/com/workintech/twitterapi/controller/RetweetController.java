@@ -6,6 +6,7 @@ import com.workintech.twitterapi.entity.Tweet;
 import com.workintech.twitterapi.service.RetweetService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,4 +34,12 @@ public class RetweetController {
     public Retweet delete(@PathVariable long id) {
         return retweetService.delete(id);
     }
+
+    @GetMapping("/tweet/{tweetId}")
+    public ResponseEntity<Retweet> findByTweetId(@PathVariable long tweetId) {
+        return retweetService.findByTweetId(tweetId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
 }

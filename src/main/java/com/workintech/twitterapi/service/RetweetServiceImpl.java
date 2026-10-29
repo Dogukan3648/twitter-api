@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class RetweetServiceImpl implements RetweetService {
     private RetweetRepository retweetRepository;
@@ -62,5 +64,18 @@ public class RetweetServiceImpl implements RetweetService {
 
         retweetRepository.delete(retweet);
         return retweet;
+    }
+
+    @Override
+    public Optional<Retweet> findByTweetId(long tweetId) {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new TwitterException(
+                        "User not found.", HttpStatus.NOT_FOUND));
+
+        return retweetRepository.findByUserIdAndTweetId(
+                user.getId(), tweetId);
     }
 }

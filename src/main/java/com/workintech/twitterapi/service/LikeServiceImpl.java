@@ -66,4 +66,15 @@ public class LikeServiceImpl implements LikeService {
         return like;
 
     }
+
+    @Override
+    public boolean isLiked(long tweetId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByEmail(email).orElseThrow(()
+        -> new TwitterException("User not found.",HttpStatus.NOT_FOUND));
+
+        return likeRepository.findByUserIdAndTweetId(user.getId(),tweetId).isPresent();
+
+    }
 }
