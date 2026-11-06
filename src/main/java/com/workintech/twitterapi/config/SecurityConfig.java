@@ -65,9 +65,18 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.setAllowedOrigins(List.of("http://localhost:3200"));
-        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        corsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        corsConfiguration.setAllowedOrigins(List.of(
+                "http://localhost:3200",
+                "https://twitter-frontend-afvu.onrender.com"
+        ));
+
+        corsConfiguration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
+        corsConfiguration.setAllowedHeaders(List.of(
+                "Authorization", "Content-Type"
+        ));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
