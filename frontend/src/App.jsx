@@ -5,6 +5,9 @@ import TweetCreateForm from "./components/TweetCreateForm";
 import TweetList from "./components/TweetList";
 import TweetSearchForm from "./components/TweetSearchForm";
 
+axios.defaults.baseURL =
+  import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 const App = () => {
   const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
@@ -24,7 +27,7 @@ const App = () => {
 
     try {
       if (mode === "register") {
-        await axios.post("http://localhost:3000/register", {
+        await axios.post("/register", {
           firstName,
           lastName,
           email,
@@ -33,7 +36,7 @@ const App = () => {
 
         setMessage("Kayıt başarılı! Şimdi giriş yapabilirsin.");
       } else {
-        await axios.post("http://localhost:3000/login", {
+        await axios.post("/login", {
           email,
           password,
         });
@@ -54,7 +57,7 @@ const App = () => {
 
     try {
       await axios.post(
-        "http://localhost:3000/tweet",
+        "/tweet",
         { content },
         {
           auth: {
@@ -85,17 +88,16 @@ const App = () => {
         password: password,
       };
 
-      const response = await axios.get(
-        `http://localhost:3000/tweet/findByUserId/${userId}`,
-        { auth },
-      );
+      const response = await axios.get(`/tweet/findByUserId/${userId}`, {
+        auth,
+      });
 
       const tweetList = response.data;
 
       const commentResults = await Promise.all(
         tweetList.map(async (tweet) => {
           const commentResponse = await axios.get(
-            `http://localhost:3000/comment/tweet/${tweet.id}`,
+            `/comment/tweet/${tweet.id}`,
             { auth },
           );
 
@@ -105,10 +107,9 @@ const App = () => {
 
       const likeResults = await Promise.all(
         tweetList.map(async (tweet) => {
-          const likeResponse = await axios.get(
-            `http://localhost:3000/like/status/${tweet.id}`,
-            { auth },
-          );
+          const likeResponse = await axios.get(`/like/status/${tweet.id}`, {
+            auth,
+          });
 
           return [tweet.id, likeResponse.data];
         }),
@@ -117,7 +118,7 @@ const App = () => {
       const retweetResults = await Promise.all(
         tweetList.map(async (tweet) => {
           const retweetResponse = await axios.get(
-            `http://localhost:3000/retweet/tweet/${tweet.id}`,
+            `/retweet/tweet/${tweet.id}`,
             { auth },
           );
 
@@ -142,7 +143,7 @@ const App = () => {
     setMessage("");
 
     try {
-      await axios.delete(`http://localhost:3000/tweet/${tweetId}`, {
+      await axios.delete(`/tweet/${tweetId}`, {
         auth: {
           username: email,
           password: password,
@@ -165,7 +166,7 @@ const App = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:3000/tweet/${tweetId}`,
+        `/tweet/${tweetId}`,
         { content: updatedContent },
         {
           auth: {
@@ -195,7 +196,7 @@ const App = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/comment",
+        "/comment",
         {
           tweetId,
           content: commentContent,
@@ -227,7 +228,7 @@ const App = () => {
 
     try {
       await axios.put(
-        `http://localhost:3000/comment/${commentId}`,
+        `/comment/${commentId}`,
         {
           content: updatedContent,
         },
@@ -265,7 +266,7 @@ const App = () => {
     setMessage("");
 
     try {
-      await axios.delete(`http://localhost:3000/comment/${commentId}`, {
+      await axios.delete(`/comment/${commentId}`, {
         auth: {
           username: email,
           password: password,
@@ -293,7 +294,7 @@ const App = () => {
 
     try {
       await axios.post(
-        "http://localhost:3000/like",
+        "/like",
         { tweetId },
         {
           auth: {
@@ -317,7 +318,7 @@ const App = () => {
 
     try {
       await axios.post(
-        "http://localhost:3000/dislike",
+        "/dislike",
         { tweetId },
         {
           auth: {
@@ -341,7 +342,7 @@ const App = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/retweet",
+        "/retweet",
         { tweetId },
         {
           auth: {
@@ -369,7 +370,7 @@ const App = () => {
     setMessage("");
 
     try {
-      await axios.delete(`http://localhost:3000/retweet/${retweetId}`, {
+      await axios.delete(`/retweet/${retweetId}`, {
         auth: {
           username: email,
           password: password,
