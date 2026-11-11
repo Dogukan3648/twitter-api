@@ -1,4 +1,4 @@
-# 🐦 Twitter REST API
+# <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f426.svg" width="32" alt="Blue Bird" /> Twitter REST API
 
 A social media REST API built with **Java, Spring Boot, Spring Security, and PostgreSQL**, featuring user authentication, tweet management, comments, likes, and retweets.
 
